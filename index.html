@@ -150,16 +150,18 @@ const state = {
   pitch: { active: false, x: 0, y: 0, progress: 0, speed: 1, curve: 0 },
   runners: [false, false, false],
   derbyHits: 0, derbyOuts: 0,
+  fielder: { x: 0, y: 0, speed: 5 },
   xp: 0, level: 1
 };
 
 const team = [
-  { name: 'Blue', animal: '🐼', color: '#60a5fa', contact: 7, power: 5, speed: 6, accuracy: 6, velocity: 5, fielding: 6, stamina: 7 },
-  { name: 'Rusty', animal: '🦊', color: '#fb923c', contact: 6, power: 7, speed: 5, accuracy: 5, velocity: 7, fielding: 5, stamina: 6 },
-  { name: 'Mint', animal: '🐸', color: '#6ee7b7', contact: 8, power: 4, speed: 8, accuracy: 7, velocity: 4, fielding: 7, stamina: 8 },
-  { name: 'Pinky', animal: '🐰', color: '#f9a8d4', contact: 5, power: 8, speed: 4, accuracy: 4, velocity: 8, fielding: 4, stamina: 5 },
-  { name: 'Sunny', animal: '🐥', color: '#fde047', contact: 7, power: 6, speed: 7, accuracy: 6, velocity: 6, fielding: 6, stamina: 7 },
-  { name: 'Storm', animal: '🐺', color: '#a78bfa', contact: 6, power: 7, speed: 6, accuracy: 7, velocity: 7, fielding: 5, stamina: 6 },
+  { name: 'Shadow', animal: '🐼', position: 'Pitcher', height: '6\'2"', build: 'athletic', color: '#60a5fa', contact: 7, power: 5, speed: 6, accuracy: 8, velocity: 9, fielding: 7, stamina: 8 },
+  { name: 'Bamboo', animal: '🐼', position: '1B', height: '6\'7"', build: 'skinny', color: '#374151', contact: 6, power: 7, speed: 4, accuracy: 6, velocity: 5, fielding: 8, stamina: 6 },
+  { name: 'Pepper', animal: '🐼', position: '2B', height: '5\'5"', build: 'chunky', color: '#1f2937', contact: 8, power: 5, speed: 8, accuracy: 7, velocity: 4, fielding: 7, stamina: 7 },
+  { name: 'Obsidian', animal: '🐼', position: '3B', height: '7\'0"', build: 'fat', color: '#111827', contact: 5, power: 8, speed: 3, accuracy: 5, velocity: 6, fielding: 6, stamina: 5 },
+  { name: 'Snowball', animal: '🐼', position: 'LF', height: '7\'5"', build: 'tall', color: '#cbd5e1', contact: 7, power: 6, speed: 7, accuracy: 6, velocity: 5, fielding: 8, stamina: 7 },
+  { name: 'Oreo', animal: '🐼', position: 'CF', height: '7\'5"', build: 'tall', color: '#64748b', contact: 8, power: 5, speed: 9, accuracy: 8, velocity: 4, fielding: 9, stamina: 8 },
+  { name: 'Pebbles', animal: '🐼', position: 'RF', height: '7\'5"', build: 'tall', color: '#475569', contact: 6, power: 7, speed: 7, accuracy: 7, velocity: 6, fielding: 8, stamina: 7 },
 ];
 
 let canvas, ctx, animId;
@@ -173,7 +175,10 @@ function showScreen(name) {
   });
   state.screen = name;
   if (name === 'team') renderTeam();
-  if (name === 'game') initCanvas();
+  if (name === 'game') {
+    if (animId) cancelAnimationFrame(animId);
+    initCanvas();
+  }
   else if (animId) { cancelAnimationFrame(animId); animId = null; }
 }
 
@@ -284,7 +289,15 @@ function drawBattingView(w, h) {
   // Active pitch
   if (state.pitch.active) {
     state.pitch.progress += state.pitch.speed * 0.02;
-    const px = w*0.5 + Math.sin(state.pitch.progress * Math.PI) * state.pitch.curve * 40;
+    const curveOffset =
+      Math.sin(state.pitch.progress * Math.PI) *
+      state.pitch.curve *
+      60;
+
+    const px =
+      w * 0.5 +
+      curveOffset +
+      (state.pitching.targetX - 0.5) * 80;
     const py = h*0.4 + state.pitch.progress * (h*0.35);
     const size = 6 + state.pitch.progress * 8;
     // Ball shadow
@@ -302,7 +315,16 @@ function drawBattingView(w, h) {
       state.pitch.active = false;
       if (!state.batting.swinging) {
         // Check if strike
-        const ballInZone = px > zoneX && px < zoneX+zoneW && py > zoneY && py < zoneY+zoneH;
+        const centerCheck =
+          state.pitch.progress > 0.82 &&
+          state.pitch.progress < 0.95;
+
+        const ballInZone =
+          centerCheck &&
+          px > zoneX &&
+          px < zoneX + zoneW &&
+          py > zoneY &&
+          py < zoneY + zoneH;
         if (ballInZone) { addStrike(); } else { addBall(); }
         setTimeout(throwPitch, 1200);
       }
@@ -330,15 +352,23 @@ function drawBattingView(w, h) {
     ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 1; ctx.stroke();
 
     // Out of bounds or landed
-    if (by < 0 || bx < 0 || bx > w || state.ball.z < -5) {
+    if (
+      by < -50 ||
+      bx < -50 ||
+      bx > w + 50 ||
+      state.ball.z < -30
+    ) {
       const dist = Math.sqrt(state.ball.x**2 + state.ball.y**2);
-      if (dist > 250 && state.ball.z > 5) {
+      if (dist > 320 && state.ball.y < -220) {
         showTimingText('🎆 HOME RUN! 🎆', '#fbbf24');
         state.homeScore++; state.derbyHits++;
         updateHUD();
       } else if (Math.abs(state.ball.vx) > 3 && state.ball.y < -50) {
         showTimingText('FOUL', '#f97316');
-        if (state.strikes < 2) addStrike();
+        if (state.strikes < 2) {
+          state.strikes++;
+          updateHUD();
+        }
       } else {
         showTimingText('IN PLAY!', '#22c55e');
         if (Math.random() > 0.5) { state.homeScore++; }
@@ -385,6 +415,24 @@ function drawPitchingView(w, h) {
 function drawFieldingView(w, h) {
   ctx.fillStyle = 'white'; ctx.font = 'bold 18px Fredoka'; ctx.textAlign = 'center';
   ctx.fillText('Fielding Practice - Catch the balls!', w*0.5, h*0.9);
+  
+  // Fielder movement
+  if (keys['KeyW']) state.fielder.y -= state.fielder.speed;
+  if (keys['KeyS']) state.fielder.y += state.fielder.speed;
+  if (keys['KeyA']) state.fielder.x -= state.fielder.speed;
+  if (keys['KeyD']) state.fielder.x += state.fielder.speed;
+  
+  // Fielder bounds
+  state.fielder.x = Math.max(-120, Math.min(120, state.fielder.x));
+  state.fielder.y = Math.max(-100, Math.min(80, state.fielder.y));
+  
+  // Draw fielder
+  drawBatter(
+    w * 0.5 + state.fielder.x,
+    h * 0.75 + state.fielder.y,
+    false
+  );
+  
   // Simple ball to catch
   if (!state.ball.active && Math.random() < 0.01) {
     state.ball.active = true; state.ball.x = (Math.random()-0.5)*200;
@@ -460,10 +508,11 @@ function swing(power, bunt) {
   state.batting.swinging = true;
   setTimeout(() => { state.batting.swinging = false; }, 300);
 
-  const timing = Math.abs(state.pitch.progress - 0.85);
+  const idealTiming = 0.88;
+  const timing = Math.abs(state.pitch.progress - idealTiming);
   let quality = 'LATE';
-  if (timing < 0.05) quality = 'PERFECT';
-  else if (timing < 0.12) quality = state.pitch.progress < 0.85 ? 'EARLY' : 'LATE';
+  if (timing < 0.035) quality = 'PERFECT';
+  else if (timing < 0.12) quality = state.pitch.progress < idealTiming ? 'EARLY' : 'LATE';
 
   if (state.pitch.progress < 0.5 || state.pitch.progress > 1.1) {
     addStrike();
@@ -482,7 +531,8 @@ function swing(power, bunt) {
   state.ball.x = 0; state.ball.y = 0; state.ball.z = 10;
   const mult = power ? 1.5 : bunt ? 0.3 : 1;
   const perfectMult = quality === 'PERFECT' ? 1.4 : quality === 'EARLY' ? 1 : 0.8;
-  const angle = (state.batting.cursorX - 0.5) * 2;
+  const angle =
+    (state.batting.cursorX - 0.5) * 6;
   state.ball.vx = angle * 4 * mult;
   state.ball.vy = -(3 + Math.random()*3) * mult * perfectMult;
   state.ball.vz = (1 - state.batting.cursorY) * 5 * mult * perfectMult;
@@ -526,6 +576,9 @@ function renderTeam() {
     <div class="card-cute p-3 flex flex-col items-center gap-2">
       <div class="text-3xl">${p.animal}</div>
       <h3 class="font-bold text-blue-900">${p.name}</h3>
+      <div class="text-xs text-gray-600">
+        <span class="font-semibold">${p.position}</span> • ${p.height} • ${p.build}
+      </div>
       <div class="w-full text-xs space-y-1">
         ${['contact','power','speed','accuracy','velocity','fielding','stamina'].map(s => `
           <div class="flex items-center gap-2">
@@ -548,8 +601,18 @@ document.addEventListener('mousemove', e => {
   mouseX = (e.clientX - rect.left) / rect.width;
   mouseY = (e.clientY - rect.top) / rect.height;
   if (state.mode === 'batting' || state.mode === 'derby') {
-    state.batting.cursorX = Math.max(0, Math.min(1, mouseX * 2 - 0.5));
-    state.batting.cursorY = Math.max(0, Math.min(1, mouseY * 2 - 0.5));
+    const zoneLeft = 0.42;
+    const zoneRight = 0.58;
+    const zoneTop = 0.45;
+    const zoneBottom = 0.75;
+
+    state.batting.cursorX =
+      (Math.max(zoneLeft, Math.min(zoneRight, mouseX)) - zoneLeft) /
+      (zoneRight - zoneLeft);
+
+    state.batting.cursorY =
+      (Math.max(zoneTop, Math.min(zoneBottom, mouseY)) - zoneTop) /
+      (zoneBottom - zoneTop);
   } else if (state.mode === 'pitching') {
     state.pitching.targetX = Math.max(0, Math.min(1, mouseX));
     state.pitching.targetY = Math.max(0, Math.min(1, mouseY));
@@ -577,15 +640,41 @@ document.addEventListener('keyup', e => {
   keys[e.code] = false;
   if (e.code === 'Space' && state.mode === 'pitching' && state.pitching.charging) {
     state.pitching.charging = false;
-    // Throw pitch from pitcher perspective
+
+    state.pitch.active = true;
+    state.pitch.progress = 0;
+
+    const charge = state.pitching.charge;
+
+    state.pitch.speed =
+      state.pitching.type === 'fastball' ? 1.5 + charge :
+      state.pitching.type === 'changeup' ? 0.7 + charge * 0.5 :
+      1 + charge * 0.8;
+
+    state.pitch.curve =
+      state.pitching.type === 'curveball' ? 1 :
+      state.pitching.type === 'slider' ? -0.8 :
+      0;
+
     showTimingText(state.pitching.type.toUpperCase(), '#60a5fa');
+
     state.pitching.charge = 0;
   }
   if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') state.batting.power = false;
 });
 document.addEventListener('keydown', e => { if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') state.batting.power = true; });
 
-window.addEventListener('resize', () => { if (canvas) { canvas.width = canvas.offsetWidth * devicePixelRatio; canvas.height = canvas.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); }});
+window.addEventListener('resize', () => {
+  if (!canvas || !ctx) return;
+
+  const dpr = window.devicePixelRatio || 1;
+
+  canvas.width = canvas.offsetWidth * dpr;
+  canvas.height = canvas.offsetHeight * dpr;
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.scale(dpr, dpr);
+});
 
 // ===== ELEMENT SDK =====
 const defaultConfig = { game_title: 'Panda Baseball', background_color: '#7dd3fc', surface_color: '#ffffff', text_color: '#1e3a5f', primary_action_color: '#3b82f6', secondary_action_color: '#fbbf24', font_family: 'Fredoka', font_size: 16 };
@@ -613,5 +702,5 @@ window.elementSdk.init({
 
 lucide.createIcons();
 </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f8bb742c67a0fab',t:'MTc3ODI3NzQwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f8bdf05d604c5e7',t:'MTc3ODI3OTAzMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
