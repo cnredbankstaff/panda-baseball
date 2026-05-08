@@ -1,0 +1,617 @@
+<!doctype html>
+<html class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panda Baseball</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+* { font-family: 'Fredoka', sans-serif; }
+html, body { height: 100%; margin: 0; overflow: hidden; }
+
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+@keyframes slideIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes ballFly { 0%{opacity:1} 100%{opacity:0} }
+@keyframes swing { 0%{transform:rotate(-30deg)} 50%{transform:rotate(60deg)} 100%{transform:rotate(-30deg)} }
+@keyframes pitchArc { 0%{transform:translate(0,0) scale(0.5)} 100%{transform:translate(0,0) scale(1)} }
+@keyframes celebrate { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-10deg)} 75%{transform:rotate(10deg)} }
+@keyframes fadeText { 0%{opacity:1;transform:translateY(0) scale(1.2)} 100%{opacity:0;transform:translateY(-40px) scale(0.8)} }
+
+.bounce { animation: bounce 1s infinite; }
+.pulse { animation: pulse 1.5s infinite; }
+.slide-in { animation: slideIn 0.4s ease-out; }
+.swing-anim { animation: swing 0.3s ease-out; }
+.celebrate { animation: celebrate 0.5s ease-in-out 3; }
+.fade-text { animation: fadeText 1.2s ease-out forwards; }
+
+.btn-game {
+  background: linear-gradient(135deg, #6ee7b7, #3b82f6);
+  border: 3px solid #1e40af;
+  border-radius: 16px;
+  padding: 12px 28px;
+  color: white;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+.btn-game:hover { transform: scale(1.05); filter: brightness(1.1); }
+.btn-game:active { transform: scale(0.95); }
+
+.btn-secondary {
+  background: linear-gradient(135deg, #fbbf24, #f97316);
+  border: 3px solid #c2410c;
+  border-radius: 16px;
+  padding: 10px 24px;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-secondary:hover { transform: scale(1.05); }
+
+.card-cute {
+  background: rgba(255,255,255,0.95);
+  border: 3px solid #a78bfa;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(139,92,246,0.2);
+}
+
+.field-bg {
+  background: linear-gradient(180deg, #86efac 0%, #4ade80 40%, #a3714f 60%, #8b5e3c 100%);
+}
+</style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-gradient-to-b from-sky-300 via-sky-200 to-emerald-100">
+  <div id="app" class="h-full w-full relative overflow-hidden">
+   <!-- MAIN MENU -->
+   <div id="menu-screen" class="h-full w-full flex flex-col items-center justify-center gap-4 p-4">
+    <div class="text-center slide-in">
+     <div class="mb-4">
+      <svg width="120" height="120" viewbox="0 0 120 120" class="mx-auto bounce">
+       <!-- Panda Mascot --> <ellipse cx="60" cy="85" rx="28" ry="25" fill="#7dd3fc" stroke="#1e3a5f" stroke-width="3" /> <!-- Hoodie --> <path d="M32 85 Q32 65 60 60 Q88 65 88 85" fill="#3b82f6" stroke="#1e3a5f" stroke-width="3" /> <!-- Hood --> <path d="M40 60 Q60 50 80 60" fill="#2563eb" stroke="#1e3a5f" stroke-width="2" /> <!-- Head --> <circle cx="60" cy="45" r="22" fill="#bfdbfe" stroke="#1e3a5f" stroke-width="3" /> <!-- Ears --> <circle cx="42" cy="28" r="8" fill="#93c5fd" stroke="#1e3a5f" stroke-width="2.5" /> <circle cx="78" cy="28" r="8" fill="#93c5fd" stroke="#1e3a5f" stroke-width="2.5" /> <!-- Eyes --> <circle cx="52" cy="43" r="6" fill="white" stroke="#1e3a5f" stroke-width="2" /> <circle cx="68" cy="43" r="6" fill="white" stroke="#1e3a5f" stroke-width="2" /> <circle cx="53" cy="44" r="3" fill="#1e3a5f" /> <circle cx="69" cy="44" r="3" fill="#1e3a5f" /> <!-- Blush --> <ellipse cx="46" cy="52" rx="4" ry="2.5" fill="#fca5a5" opacity="0.6" /> <ellipse cx="74" cy="52" rx="4" ry="2.5" fill="#fca5a5" opacity="0.6" /> <!-- Nose --> <ellipse cx="60" cy="50" rx="3" ry="2" fill="#1e3a5f" /> <!-- Smile --> <path d="M55 54 Q60 58 65 54" stroke="#1e3a5f" stroke-width="2" fill="none" stroke-linecap="round" /> <!-- Cap --> <path d="M38 35 Q60 20 82 35" fill="#ef4444" stroke="#1e3a5f" stroke-width="2.5" /> <rect x="38" y="33" width="44" height="4" rx="2" fill="#dc2626" stroke="#1e3a5f" stroke-width="1.5" /> <!-- Arms --> <ellipse cx="35" cy="80" rx="6" ry="8" fill="#bfdbfe" stroke="#1e3a5f" stroke-width="2.5" /> <ellipse cx="85" cy="80" rx="6" ry="8" fill="#bfdbfe" stroke="#1e3a5f" stroke-width="2.5" /> <!-- Bat --> <rect x="88" y="60" width="5" height="30" rx="2.5" fill="#fbbf24" stroke="#92400e" stroke-width="2" transform="rotate(15,90,75)" /> <!-- Legs --> <ellipse cx="50" cy="108" rx="7" ry="6" fill="#bfdbfe" stroke="#1e3a5f" stroke-width="2.5" /> <ellipse cx="70" cy="108" rx="7" ry="6" fill="#bfdbfe" stroke="#1e3a5f" stroke-width="2.5" />
+      </svg>
+     </div>
+     <h1 id="title-text" class="text-4xl font-bold text-blue-900 drop-shadow-lg mb-1">Panda Baseball</h1>
+     <p class="text-blue-700 font-medium text-lg">⚾ Cute &amp; Competitive! ⚾</p>
+    </div>
+    <div class="flex flex-col gap-3 slide-in mt-4">
+     <button class="btn-game" onclick="startGame('batting')">🏏 Quick Play - Batting</button> <button class="btn-game" onclick="startGame('pitching')">⚾ Quick Play - Pitching</button> <button class="btn-secondary" onclick="startGame('derby')">💥 Home Run Derby</button> <button class="btn-secondary" onclick="showScreen('training')">🏋️ Training Mode</button> <button class="btn-secondary" onclick="showScreen('team')">👥 Team Management</button>
+    </div>
+    <p class="text-sm text-blue-600 mt-4 opacity-75">WASD move • Mouse aim • Space swing • Shift power</p>
+   </div><!-- GAME SCREEN -->
+   <div id="game-screen" class="h-full w-full hidden">
+    <canvas id="gameCanvas" class="w-full h-full"></canvas><!-- HUD -->
+    <div id="hud" class="absolute top-2 left-2 right-2 flex justify-between items-start pointer-events-none">
+     <div class="card-cute px-3 py-2 text-sm pointer-events-auto">
+      <div class="flex gap-4 font-bold text-blue-900">
+       <span>⚾ <span id="hud-balls">0</span>-<span id="hud-strikes">0</span></span> <span>OUT: <span id="hud-outs">0</span></span> <span>INN: <span id="hud-inning">1</span></span>
+      </div>
+     </div>
+     <div class="card-cute px-3 py-2 text-sm">
+      <div class="flex gap-4 font-bold">
+       <span class="text-blue-600">🐼 <span id="hud-home">0</span></span> <span class="text-red-500">🦊 <span id="hud-away">0</span></span>
+      </div>
+     </div>
+    </div><!-- Timing feedback -->
+    <div id="timing-text" class="absolute top-1/3 left-1/2 -translate-x-1/2 text-3xl font-bold hidden fade-text pointer-events-none"></div><!-- Controls hint -->
+    <div class="absolute bottom-2 left-2 card-cute px-3 py-1 text-xs text-blue-800 opacity-80">
+     <span id="control-hint">Mouse aim • Space swing • Shift power • Q bunt</span>
+    </div><button class="absolute top-2 left-1/2 -translate-x-1/2 btn-secondary text-xs py-1 px-3" onclick="showScreen('menu')">✕ Menu</button>
+   </div><!-- TRAINING SCREEN -->
+   <div id="training-screen" class="h-full w-full hidden flex flex-col items-center justify-center gap-4 p-4">
+    <h2 class="text-3xl font-bold text-blue-900">🏋️ Training Center</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl w-full">
+     <div class="card-cute p-4 text-center cursor-pointer hover:scale-105 transition-transform" onclick="startGame('batting')">
+      <div class="text-4xl mb-2">
+       🏏
+      </div>
+      <h3 class="font-bold text-blue-900">Batting Cage</h3>
+      <p class="text-sm text-gray-600">Practice timing &amp; contact</p>
+     </div>
+     <div class="card-cute p-4 text-center cursor-pointer hover:scale-105 transition-transform" onclick="startGame('pitching')">
+      <div class="text-4xl mb-2">
+       ⚾
+      </div>
+      <h3 class="font-bold text-blue-900">Pitching Lab</h3>
+      <p class="text-sm text-gray-600">Master speed &amp; control</p>
+     </div>
+     <div class="card-cute p-4 text-center cursor-pointer hover:scale-105 transition-transform" onclick="startGame('fielding')">
+      <div class="text-4xl mb-2">
+       🧤
+      </div>
+      <h3 class="font-bold text-blue-900">Fielding Drill</h3>
+      <p class="text-sm text-gray-600">Catch flies &amp; grounders</p>
+     </div>
+    </div><button class="btn-secondary mt-4" onclick="showScreen('menu')">← Back</button>
+   </div><!-- TEAM SCREEN -->
+   <div id="team-screen" class="h-full w-full hidden flex flex-col items-center p-4 overflow-auto">
+    <h2 class="text-3xl font-bold text-blue-900 mb-4">👥 Team Roster</h2>
+    <div id="team-roster" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-3xl w-full"></div><button class="btn-secondary mt-4" onclick="showScreen('menu')">← Back</button>
+   </div>
+  </div>
+  <script>
+// ===== GAME STATE =====
+const state = {
+  screen: 'menu',
+  mode: 'batting',
+  balls: 0, strikes: 0, outs: 0, inning: 1,
+  homeScore: 0, awayScore: 0,
+  batting: { cursorX: 0.5, cursorY: 0.5, swinging: false, swingFrame: 0, power: false },
+  pitching: { targetX: 0.5, targetY: 0.5, type: 'fastball', charging: false, charge: 0 },
+  ball: { active: false, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, trail: [] },
+  pitch: { active: false, x: 0, y: 0, progress: 0, speed: 1, curve: 0 },
+  runners: [false, false, false],
+  derbyHits: 0, derbyOuts: 0,
+  xp: 0, level: 1
+};
+
+const team = [
+  { name: 'Blue', animal: '🐼', color: '#60a5fa', contact: 7, power: 5, speed: 6, accuracy: 6, velocity: 5, fielding: 6, stamina: 7 },
+  { name: 'Rusty', animal: '🦊', color: '#fb923c', contact: 6, power: 7, speed: 5, accuracy: 5, velocity: 7, fielding: 5, stamina: 6 },
+  { name: 'Mint', animal: '🐸', color: '#6ee7b7', contact: 8, power: 4, speed: 8, accuracy: 7, velocity: 4, fielding: 7, stamina: 8 },
+  { name: 'Pinky', animal: '🐰', color: '#f9a8d4', contact: 5, power: 8, speed: 4, accuracy: 4, velocity: 8, fielding: 4, stamina: 5 },
+  { name: 'Sunny', animal: '🐥', color: '#fde047', contact: 7, power: 6, speed: 7, accuracy: 6, velocity: 6, fielding: 6, stamina: 7 },
+  { name: 'Storm', animal: '🐺', color: '#a78bfa', contact: 6, power: 7, speed: 6, accuracy: 7, velocity: 7, fielding: 5, stamina: 6 },
+];
+
+let canvas, ctx, animId;
+let mouseX = 0, mouseY = 0;
+let keys = {};
+
+// ===== SCREEN MANAGEMENT =====
+function showScreen(name) {
+  ['menu','game','training','team'].forEach(s => {
+    document.getElementById(s+'-screen').classList.toggle('hidden', s !== name);
+  });
+  state.screen = name;
+  if (name === 'team') renderTeam();
+  if (name === 'game') initCanvas();
+  else if (animId) { cancelAnimationFrame(animId); animId = null; }
+}
+
+function startGame(mode) {
+  state.mode = mode;
+  state.balls = 0; state.strikes = 0; state.outs = 0;
+  state.ball.active = false; state.pitch.active = false;
+  state.batting.swinging = false;
+  state.derbyHits = 0; state.derbyOuts = 0;
+  if (mode === 'pitching') document.getElementById('control-hint').textContent = 'Mouse aim • Space pitch • 1-5 pitch type';
+  else document.getElementById('control-hint').textContent = 'Mouse aim • Space swing • Shift power • Q bunt';
+  showScreen('game');
+  if (mode !== 'pitching') setTimeout(throwPitch, 1000);
+}
+
+// ===== CANVAS =====
+function initCanvas() {
+  if (animId) cancelAnimationFrame(animId);
+  canvas = document.getElementById('gameCanvas');
+  if (!canvas) {
+    console.error('Canvas not found');
+    return;
+  }
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = canvas.offsetWidth * dpr;
+  canvas.height = canvas.offsetHeight * dpr;
+  ctx = canvas.getContext('2d');
+  if (ctx) ctx.scale(dpr, dpr);
+  updateHUD();
+  gameLoop();
+}
+
+function gameLoop() {
+  if (state.screen !== 'game') return;
+  const w = canvas.offsetWidth, h = canvas.offsetHeight;
+  ctx.clearRect(0, 0, w, h);
+  drawField(w, h);
+  if (state.mode === 'batting' || state.mode === 'derby') drawBattingView(w, h);
+  else if (state.mode === 'pitching') drawPitchingView(w, h);
+  else if (state.mode === 'fielding') drawFieldingView(w, h);
+  animId = requestAnimationFrame(gameLoop);
+}
+
+function drawField(w, h) {
+  // Sky
+  const sky = ctx.createLinearGradient(0, 0, 0, h * 0.4);
+  sky.addColorStop(0, '#7dd3fc'); sky.addColorStop(1, '#bae6fd');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h * 0.4);
+  // Grass
+  ctx.fillStyle = '#4ade80'; ctx.fillRect(0, h * 0.3, w, h * 0.7);
+  // Dirt diamond
+  ctx.fillStyle = '#d4a574';
+  ctx.beginPath();
+  ctx.moveTo(w * 0.5, h * 0.35); ctx.lineTo(w * 0.7, h * 0.55);
+  ctx.lineTo(w * 0.5, h * 0.75); ctx.lineTo(w * 0.3, h * 0.55);
+  ctx.closePath(); ctx.fill();
+  // Infield grass
+  ctx.fillStyle = '#22c55e';
+  ctx.beginPath();
+  ctx.moveTo(w * 0.5, h * 0.42); ctx.lineTo(w * 0.62, h * 0.55);
+  ctx.lineTo(w * 0.5, h * 0.68); ctx.lineTo(w * 0.38, h * 0.55);
+  ctx.closePath(); ctx.fill();
+  // Bases
+  const bases = [[0.5, 0.73],[0.65, 0.55],[0.5, 0.38],[0.35, 0.55]];
+  bases.forEach(([bx, by], i) => {
+    ctx.fillStyle = (state.runners[i-1]) ? '#fbbf24' : 'white';
+    ctx.strokeStyle = '#1e3a5f'; ctx.lineWidth = 2;
+    ctx.save(); ctx.translate(bx*w, by*h); ctx.rotate(Math.PI/4);
+    ctx.fillRect(-6, -6, 12, 12); ctx.strokeRect(-6, -6, 12, 12);
+    ctx.restore();
+  });
+  // Foul lines
+  ctx.strokeStyle = 'white'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(w*0.5, h*0.75); ctx.lineTo(w*0.1, h*0.2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(w*0.5, h*0.75); ctx.lineTo(w*0.9, h*0.2); ctx.stroke();
+  // Outfield fence
+  ctx.strokeStyle = '#1e3a5f'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.arc(w*0.5, h*0.75, h*0.5, Math.PI*1.15, Math.PI*1.85); ctx.stroke();
+  // Mound
+  ctx.fillStyle = '#c4956a';
+  ctx.beginPath(); ctx.ellipse(w*0.5, h*0.55, 15, 10, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'white'; ctx.fillRect(w*0.5-4, h*0.55-2, 8, 4);
+}
+
+function drawBattingView(w, h) {
+  const zoneX = w * 0.5 - 50, zoneY = h * 0.6, zoneW = 100, zoneH = 120;
+  // Strike zone
+  ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 2;
+  ctx.setLineDash([5,5]); ctx.strokeRect(zoneX, zoneY, zoneW, zoneH); ctx.setLineDash([]);
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1;
+  for(let i=1;i<3;i++) { ctx.beginPath(); ctx.moveTo(zoneX+zoneW*i/3,zoneY); ctx.lineTo(zoneX+zoneW*i/3,zoneY+zoneH); ctx.stroke(); }
+  for(let i=1;i<3;i++) { ctx.beginPath(); ctx.moveTo(zoneX,zoneY+zoneH*i/3); ctx.lineTo(zoneX+zoneW,zoneY+zoneH*i/3); ctx.stroke(); }
+
+  // Batting cursor
+  const cx = zoneX + state.batting.cursorX * zoneW;
+  const cy = zoneY + state.batting.cursorY * zoneH;
+  ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI*2);
+  ctx.fillStyle = state.batting.power ? 'rgba(239,68,68,0.5)' : 'rgba(96,165,250,0.5)';
+  ctx.fill();
+  ctx.strokeStyle = state.batting.power ? '#ef4444' : '#3b82f6'; ctx.lineWidth = 3; ctx.stroke();
+  // Crosshair
+  ctx.beginPath(); ctx.moveTo(cx-16,cy); ctx.lineTo(cx+16,cy); ctx.moveTo(cx,cy-16); ctx.lineTo(cx,cy+16); ctx.stroke();
+
+  // Batter mascot
+  drawBatter(w * 0.5 + 60, h * 0.72, state.batting.swinging);
+
+  // Active pitch
+  if (state.pitch.active) {
+    state.pitch.progress += state.pitch.speed * 0.02;
+    const px = w*0.5 + Math.sin(state.pitch.progress * Math.PI) * state.pitch.curve * 40;
+    const py = h*0.4 + state.pitch.progress * (h*0.35);
+    const size = 6 + state.pitch.progress * 8;
+    // Ball shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.ellipse(px, py+size, size*0.8, size*0.3, 0, 0, Math.PI*2); ctx.fill();
+    // Ball
+    ctx.fillStyle = 'white'; ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(px, py, size, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    // Seams
+    ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(px-2, py, size*0.6, -0.5, 1.5); ctx.stroke();
+    ctx.beginPath(); ctx.arc(px+2, py, size*0.6, 1.5, 3.5); ctx.stroke();
+
+    if (state.pitch.progress >= 1) {
+      state.pitch.active = false;
+      if (!state.batting.swinging) {
+        // Check if strike
+        const ballInZone = px > zoneX && px < zoneX+zoneW && py > zoneY && py < zoneY+zoneH;
+        if (ballInZone) { addStrike(); } else { addBall(); }
+        setTimeout(throwPitch, 1200);
+      }
+    }
+  }
+
+  // Ball in play
+  if (state.ball.active) {
+    state.ball.x += state.ball.vx;
+    state.ball.y += state.ball.vy;
+    state.ball.z += state.ball.vz;
+    state.ball.vz -= 0.3;
+    const bx = w*0.5 + state.ball.x;
+    const by = h*0.7 + state.ball.y - state.ball.z;
+    const bSize = Math.max(3, 10 - Math.abs(state.ball.y) * 0.02);
+    // Trail
+    state.ball.trail.push({x: bx, y: by});
+    if (state.ball.trail.length > 15) state.ball.trail.shift();
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    state.ball.trail.forEach((p,i) => { i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y); });
+    ctx.stroke();
+    // Ball
+    ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(bx, by, bSize, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 1; ctx.stroke();
+
+    // Out of bounds or landed
+    if (by < 0 || bx < 0 || bx > w || state.ball.z < -5) {
+      const dist = Math.sqrt(state.ball.x**2 + state.ball.y**2);
+      if (dist > 250 && state.ball.z > 5) {
+        showTimingText('🎆 HOME RUN! 🎆', '#fbbf24');
+        state.homeScore++; state.derbyHits++;
+        updateHUD();
+      } else if (Math.abs(state.ball.vx) > 3 && state.ball.y < -50) {
+        showTimingText('FOUL', '#f97316');
+        if (state.strikes < 2) addStrike();
+      } else {
+        showTimingText('IN PLAY!', '#22c55e');
+        if (Math.random() > 0.5) { state.homeScore++; }
+        updateHUD();
+      }
+      state.ball.active = false; state.ball.trail = [];
+      if (state.mode === 'derby' && state.derbyOuts >= 10) { /* end */ }
+      else setTimeout(throwPitch, 1500);
+    }
+  }
+
+  // Pitcher mascot
+  drawPitcher(w * 0.5, h * 0.42);
+}
+
+function drawPitchingView(w, h) {
+  const zoneX = w * 0.5 - 60, zoneY = h * 0.45, zoneW = 120, zoneH = 140;
+  // Strike zone
+  ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 2;
+  ctx.strokeRect(zoneX, zoneY, zoneW, zoneH);
+  // Target
+  const tx = zoneX + state.pitching.targetX * zoneW;
+  const ty = zoneY + state.pitching.targetY * zoneH;
+  ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(tx, ty, 15, 0, Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(tx-20,ty); ctx.lineTo(tx+20,ty); ctx.moveTo(tx,ty-20); ctx.lineTo(tx,ty+20); ctx.stroke();
+  // Charge meter
+  if (state.pitching.charging) {
+    state.pitching.charge = Math.min(1, state.pitching.charge + 0.02);
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(w*0.5-50, h*0.85, 100, 12);
+    const c = state.pitching.charge;
+    ctx.fillStyle = c > 0.8 ? '#ef4444' : c > 0.5 ? '#fbbf24' : '#22c55e';
+    ctx.fillRect(w*0.5-50, h*0.85, 100*c, 12);
+    ctx.strokeStyle = 'white'; ctx.strokeRect(w*0.5-50, h*0.85, 100, 12);
+  }
+  // Pitch type
+  ctx.fillStyle = 'white'; ctx.font = 'bold 14px Fredoka'; ctx.textAlign = 'center';
+  ctx.fillText(state.pitching.type.toUpperCase(), w*0.5, h*0.93);
+  ctx.fillText('1:FB  2:CB  3:SL  4:CH  5:SP', w*0.5, h*0.97);
+  // Batter
+  drawBatter(w*0.5 + 70, h*0.72, false);
+}
+
+function drawFieldingView(w, h) {
+  ctx.fillStyle = 'white'; ctx.font = 'bold 18px Fredoka'; ctx.textAlign = 'center';
+  ctx.fillText('Fielding Practice - Catch the balls!', w*0.5, h*0.9);
+  // Simple ball to catch
+  if (!state.ball.active && Math.random() < 0.01) {
+    state.ball.active = true; state.ball.x = (Math.random()-0.5)*200;
+    state.ball.y = -300; state.ball.z = 80; state.ball.vx = (Math.random()-0.5)*3;
+    state.ball.vy = 2; state.ball.vz = -1; state.ball.trail = [];
+  }
+  if (state.ball.active) {
+    state.ball.y += state.ball.vy; state.ball.z += state.ball.vz; state.ball.vz -= 0.15;
+    const bx = w*0.5 + state.ball.x, by = h*0.4 + state.ball.y - state.ball.z;
+    ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(bx, by, 8, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#dc2626'; ctx.stroke();
+    if (state.ball.z < 0) { state.ball.active = false; }
+  }
+}
+
+function drawBatter(x, y, swinging) {
+  ctx.save(); ctx.translate(x, y);
+  if (swinging) ctx.rotate(0.3);
+  // Body
+  ctx.fillStyle = '#bfdbfe'; ctx.strokeStyle = '#1e3a5f'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.ellipse(0, 0, 16, 18, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  // Jersey
+  ctx.fillStyle = '#3b82f6';
+  ctx.beginPath(); ctx.ellipse(0, 5, 14, 12, 0, -Math.PI, 0); ctx.fill();
+  // Head
+  ctx.fillStyle = '#bfdbfe';
+  ctx.beginPath(); ctx.arc(0, -22, 14, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  // Eyes
+  ctx.fillStyle = '#1e3a5f';
+  ctx.beginPath(); ctx.arc(-4, -23, 3, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(6, -23, 3, 0, Math.PI*2); ctx.fill();
+  // Cap
+  ctx.fillStyle = '#ef4444';
+  ctx.beginPath(); ctx.arc(0, -30, 12, Math.PI, 0); ctx.fill();
+  ctx.fillRect(-14, -30, 28, 4);
+  // Bat
+  ctx.fillStyle = '#fbbf24'; ctx.strokeStyle = '#92400e'; ctx.lineWidth = 2;
+  ctx.save(); ctx.translate(-15, -5); ctx.rotate(swinging ? 1.2 : -0.5);
+  ctx.fillRect(-3, -30, 6, 35); ctx.strokeRect(-3, -30, 6, 35); ctx.restore();
+  ctx.restore();
+}
+
+function drawPitcher(x, y) {
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = '#fed7aa'; ctx.strokeStyle = '#1e3a5f'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.ellipse(0, 0, 12, 14, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#f97316';
+  ctx.beginPath(); ctx.ellipse(0, 3, 10, 9, 0, -Math.PI, 0); ctx.fill();
+  ctx.fillStyle = '#fed7aa';
+  ctx.beginPath(); ctx.arc(0, -16, 10, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#1e3a5f';
+  ctx.beginPath(); ctx.arc(-3, -17, 2, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(4, -17, 2, 0, Math.PI*2); ctx.fill();
+  // Fox ears
+  ctx.fillStyle = '#fb923c';
+  ctx.beginPath(); ctx.moveTo(-8,-24); ctx.lineTo(-4,-32); ctx.lineTo(0,-24); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(8,-24); ctx.lineTo(4,-32); ctx.lineTo(0,-24); ctx.fill();
+  ctx.restore();
+}
+
+// ===== GAME LOGIC =====
+function throwPitch() {
+  if (state.screen !== 'game') return;
+  state.pitch.active = true; state.pitch.progress = 0;
+  const types = ['fastball','curveball','slider','changeup','splitter'];
+  const t = types[Math.floor(Math.random()*5)];
+  state.pitch.speed = t === 'fastball' ? 1.4 : t === 'changeup' ? 0.8 : 1.1;
+  state.pitch.curve = t === 'curveball' ? 1 : t === 'slider' ? -0.7 : (Math.random()-0.5)*0.3;
+}
+
+function swing(power, bunt) {
+  if (state.batting.swinging || !state.pitch.active) return;
+  state.batting.swinging = true;
+  setTimeout(() => { state.batting.swinging = false; }, 300);
+
+  const timing = Math.abs(state.pitch.progress - 0.85);
+  let quality = 'LATE';
+  if (timing < 0.05) quality = 'PERFECT';
+  else if (timing < 0.12) quality = state.pitch.progress < 0.85 ? 'EARLY' : 'LATE';
+
+  if (state.pitch.progress < 0.5 || state.pitch.progress > 1.1) {
+    addStrike();
+    showTimingText('MISS!', '#ef4444');
+    state.pitch.active = false;
+    setTimeout(throwPitch, 1200);
+    return;
+  }
+
+  state.pitch.active = false;
+  const colors = { PERFECT: '#22c55e', EARLY: '#fbbf24', LATE: '#f97316' };
+  showTimingText(quality + '!', colors[quality] || '#fff');
+
+  // Launch ball
+  state.ball.active = true; state.ball.trail = [];
+  state.ball.x = 0; state.ball.y = 0; state.ball.z = 10;
+  const mult = power ? 1.5 : bunt ? 0.3 : 1;
+  const perfectMult = quality === 'PERFECT' ? 1.4 : quality === 'EARLY' ? 1 : 0.8;
+  const angle = (state.batting.cursorX - 0.5) * 2;
+  state.ball.vx = angle * 4 * mult;
+  state.ball.vy = -(3 + Math.random()*3) * mult * perfectMult;
+  state.ball.vz = (1 - state.batting.cursorY) * 5 * mult * perfectMult;
+}
+
+function addStrike() {
+  state.strikes++;
+  if (state.strikes >= 3) { state.outs++; state.strikes = 0; state.balls = 0; showTimingText('STRIKE OUT!', '#ef4444'); }
+  if (state.outs >= 3) { state.outs = 0; state.inning++; }
+  updateHUD();
+}
+
+function addBall() {
+  state.balls++;
+  if (state.balls >= 4) { state.balls = 0; state.strikes = 0; showTimingText('WALK!', '#60a5fa'); }
+  updateHUD();
+}
+
+function updateHUD() {
+  document.getElementById('hud-balls').textContent = state.balls;
+  document.getElementById('hud-strikes').textContent = state.strikes;
+  document.getElementById('hud-outs').textContent = state.outs;
+  document.getElementById('hud-inning').textContent = state.inning;
+  document.getElementById('hud-home').textContent = state.homeScore;
+  document.getElementById('hud-away').textContent = state.awayScore;
+}
+
+function showTimingText(text, color) {
+  const el = document.getElementById('timing-text');
+  el.textContent = text; el.style.color = color;
+  el.classList.remove('hidden','fade-text');
+  void el.offsetWidth;
+  el.classList.add('fade-text');
+  setTimeout(() => el.classList.add('hidden'), 1200);
+}
+
+// ===== TEAM =====
+function renderTeam() {
+  const container = document.getElementById('team-roster');
+  container.innerHTML = team.map(p => `
+    <div class="card-cute p-3 flex flex-col items-center gap-2">
+      <div class="text-3xl">${p.animal}</div>
+      <h3 class="font-bold text-blue-900">${p.name}</h3>
+      <div class="w-full text-xs space-y-1">
+        ${['contact','power','speed','accuracy','velocity','fielding','stamina'].map(s => `
+          <div class="flex items-center gap-2">
+            <span class="w-16 text-gray-600 capitalize">${s}</span>
+            <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div class="h-full rounded-full" style="width:${p[s]*10}%;background:${p.color}"></div>
+            </div>
+            <span class="font-bold text-xs" style="color:${p.color}">${p[s]}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== CONTROLS =====
+document.addEventListener('mousemove', e => {
+  const rect = canvas?.getBoundingClientRect();
+  if (!rect) return;
+  mouseX = (e.clientX - rect.left) / rect.width;
+  mouseY = (e.clientY - rect.top) / rect.height;
+  if (state.mode === 'batting' || state.mode === 'derby') {
+    state.batting.cursorX = Math.max(0, Math.min(1, mouseX * 2 - 0.5));
+    state.batting.cursorY = Math.max(0, Math.min(1, mouseY * 2 - 0.5));
+  } else if (state.mode === 'pitching') {
+    state.pitching.targetX = Math.max(0, Math.min(1, mouseX));
+    state.pitching.targetY = Math.max(0, Math.min(1, mouseY));
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (keys[e.code]) return;
+  keys[e.code] = true;
+  if (state.screen !== 'game') return;
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (state.mode === 'batting' || state.mode === 'derby') swing(keys['ShiftLeft'] || keys['ShiftRight'], false);
+    else if (state.mode === 'pitching') { state.pitching.charging = true; state.pitching.charge = 0; }
+  }
+  if (e.code === 'KeyQ') { swing(false, true); }
+  if (e.code === 'Digit1') state.pitching.type = 'fastball';
+  if (e.code === 'Digit2') state.pitching.type = 'curveball';
+  if (e.code === 'Digit3') state.pitching.type = 'slider';
+  if (e.code === 'Digit4') state.pitching.type = 'changeup';
+  if (e.code === 'Digit5') state.pitching.type = 'splitter';
+});
+
+document.addEventListener('keyup', e => {
+  keys[e.code] = false;
+  if (e.code === 'Space' && state.mode === 'pitching' && state.pitching.charging) {
+    state.pitching.charging = false;
+    // Throw pitch from pitcher perspective
+    showTimingText(state.pitching.type.toUpperCase(), '#60a5fa');
+    state.pitching.charge = 0;
+  }
+  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') state.batting.power = false;
+});
+document.addEventListener('keydown', e => { if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') state.batting.power = true; });
+
+window.addEventListener('resize', () => { if (canvas) { canvas.width = canvas.offsetWidth * devicePixelRatio; canvas.height = canvas.offsetHeight * devicePixelRatio; ctx.scale(devicePixelRatio, devicePixelRatio); }});
+
+// ===== ELEMENT SDK =====
+const defaultConfig = { game_title: 'Panda Baseball', background_color: '#7dd3fc', surface_color: '#ffffff', text_color: '#1e3a5f', primary_action_color: '#3b82f6', secondary_action_color: '#fbbf24', font_family: 'Fredoka', font_size: 16 };
+
+window.elementSdk.init({
+  defaultConfig,
+  onConfigChange: async (config) => {
+    document.getElementById('title-text').textContent = config.game_title || defaultConfig.game_title;
+    document.body.style.fontFamily = `${config.font_family || defaultConfig.font_family}, sans-serif`;
+  },
+  mapToCapabilities: (config) => ({
+    recolorables: [
+      { get: () => config.background_color || defaultConfig.background_color, set: v => { config.background_color = v; window.elementSdk.setConfig({background_color:v}); }},
+      { get: () => config.surface_color || defaultConfig.surface_color, set: v => { config.surface_color = v; window.elementSdk.setConfig({surface_color:v}); }},
+      { get: () => config.text_color || defaultConfig.text_color, set: v => { config.text_color = v; window.elementSdk.setConfig({text_color:v}); }},
+      { get: () => config.primary_action_color || defaultConfig.primary_action_color, set: v => { config.primary_action_color = v; window.elementSdk.setConfig({primary_action_color:v}); }},
+      { get: () => config.secondary_action_color || defaultConfig.secondary_action_color, set: v => { config.secondary_action_color = v; window.elementSdk.setConfig({secondary_action_color:v}); }},
+    ],
+    borderables: [],
+    fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: v => { config.font_family = v; window.elementSdk.setConfig({font_family:v}); }},
+    fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: v => { config.font_size = v; window.elementSdk.setConfig({font_size:v}); }}
+  }),
+  mapToEditPanelValues: (config) => new Map([['game_title', config.game_title || defaultConfig.game_title]])
+});
+
+lucide.createIcons();
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f8bb742c67a0fab',t:'MTc3ODI3NzQwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
